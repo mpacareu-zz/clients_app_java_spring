@@ -1,10 +1,13 @@
 package com.mydomain.clients.backend.apirest.controllers;
 
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,31 +36,102 @@ public class ClientRestController {
 	}
 	
 	@GetMapping("/clients/{id}")
-	public Client show(@PathVariable Long id) {
-		return clientService.findById(id);
+	public ResponseEntity<?> show(@PathVariable Long id) {
+		Client client = null;
+		Map<String, Object> response = new HashMap<>();
+		try {
+			client = clientService.findById(id);
+		} 
+		catch(DataAccessException e) 
+		{
+			response.put("message", "Error performing the query in the database");
+			response.put("error", e.getMessage()+ ": "+ e.getMostSpecificCause().getMessage());
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+		if(client == null) {
+			response.put("message", "Client ID: "+id.toString()+" does not exist in the database.");
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
+		}
+		return new ResponseEntity<Client>(client, HttpStatus.OK);
 	}
 	
 	@PostMapping("/clients")
-	@ResponseStatus(HttpStatus.CREATED)
-	public Client create (@RequestBody Client client) {
-		return clientService.save(client);
+	public ResponseEntity<?> create (@RequestBody Client client) {
+		Client newClient= null;
+		Map<String, Object> response = new HashMap<>();
+		try {
+			newClient =clientService.save(client);
+		} 
+		catch(DataAccessException e) 
+		{
+			response.put("message", "Error performing the insert in the database");
+			response.put("error", e.getMessage()+ ": "+ e.getMostSpecificCause().getMessage());
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+		response.put("message", "The client was created successfully");
+		response.put("client", newClient);
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
+		
 	}
 	
 	@PutMapping("/clients/{id}")
-	@ResponseStatus(HttpStatus.CREATED)
-	public Client update (@RequestBody Client client, @PathVariable Long id) {
-		Client currentClient = clientService.findById(id);
+	public ResponseEntity<?> update (@RequestBody Client client, @PathVariable Long id) {
+		Client currentClient = null;
+		Client savedClient = null;
+		Map<String, Object> response = new HashMap<>();
 		
-		currentClient.setName(client.getName());
-		currentClient.setLastName(client.getLastName());
-		currentClient.setEmail(client.getEmail());
+		try {
+			currentClient = clientService.findById(id);
+		} 
+		catch(DataAccessException e) 
+		{
+			response.put("message", "Error performing the query in the database");
+			response.put("error", e.getMessage()+ ": "+ e.getMostSpecificCause().getMessage());
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 		
-		return clientService.save(currentClient);
+		if(currentClient == null) {
+			response.put("message", "Error: could not be edited, client ID: "+id.toString()+" does not exist in the database.");
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
+		}
+		
+		try {
+			currentClient.setName(client.getName());
+			currentClient.setLastName(client.getLastName());
+			currentClient.setEmail(client.getEmail());
+			currentClient.setCreateAt(client.getCreateAt());
+			savedClient =clientService.save(currentClient);
+		} 
+		catch(DataAccessException e) 
+		{
+			response.put("message", "Error performing the update in the database");
+			response.put("error", e.getMessage()+ ": "+ e.getMostSpecificCause().getMessage());
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+		response.put("message", "The client was updated successfully");
+		response.put("client", savedClient);
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
+		
+		
+		
 	}
 	
 	@DeleteMapping("/clients/{id}")
-	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void delete(@PathVariable Long id) {
-		clientService.delete(id);
+	public ResponseEntity<?> delete(@PathVariable Long id) {
+		Map<String, Object> response = new HashMap<>();
+		try {
+			clientService.delete(id);
+		} 
+		catch(DataAccessException e) 
+		{
+			response.put("message", "Error performing the delete in the database");
+			response.put("error", e.getMessage()+ ": "+ e.getMostSpecificCause().getMessage());
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		response.put("message", "The client was deleted successfully");
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 	}
 }
