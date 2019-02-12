@@ -1,6 +1,5 @@
 package com.mydomain.clients.backend.apirest.controllers;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +20,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mydomain.clients.backend.apirest.models.entity.Client;
@@ -67,7 +65,7 @@ public class ClientRestController {
 		Map<String, Object> response = new HashMap<>();
 		
 		if(result.hasErrors()) {
-			List<String> errors = result.getFieldErrors().stream().map(e-> "The field, '"+e.getField()+"' has the following error:"+e.getDefaultMessage()).collect(Collectors.toList());
+			List<String> errors = result.getFieldErrors().stream().map(e-> "The field, '"+e.getField()+"' has the following error: "+e.getDefaultMessage()).collect(Collectors.toList());
 			response.put("errors", errors);
 			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
 		}
@@ -95,7 +93,7 @@ public class ClientRestController {
 		Map<String, Object> response = new HashMap<>();
 		
 		if(result.hasErrors()) {
-			List<String> errors = result.getFieldErrors().stream().map(e-> "The field, '"+e.getField()+"' has the following error:"+e.getDefaultMessage()).collect(Collectors.toList());
+			List<String> errors = result.getFieldErrors().stream().map(e-> "The field, '"+e.getField()+"' has the following error: "+e.getDefaultMessage()).collect(Collectors.toList());
 			response.put("errors", errors);
 			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
 		}
